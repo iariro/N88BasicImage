@@ -33,14 +33,14 @@ public class N88BasicImage
 		{
 			for (int y=0 ; y<image.getHeight() ; y++)
 			{
-				int c = image.getRGB(0, 0);
+				int c = image.getRGB(x, y);
 				int index = getNearestColorIndex(c);
 				basicImage.putPixel(x, y, index);
 			}
 		}
 
 		basicImage.dump(new FileOutputStream(args[1]));
-		System.out.println("written.");
+		System.out.printf("written %d words.\n", basicImage.words.length);
 	}
 
 	/**
@@ -81,15 +81,15 @@ public class N88BasicImage
 
 	int width;
 	int height;
-	int lineWordNum;
+	int byteNumPerLine;
 	short [] words;
 
 	public N88BasicImage(int width, int height)
 	{
 		this.width = width;
 		this.height = height;
-		this.lineWordNum = (width + 7) / 16;
-		this.words = new short [2 + lineWordNum * 4 * height];
+		this.byteNumPerLine = ((width + 7) / 8);
+		this.words = new short [2 + (byteNumPerLine * 4 * height) / 2];
 
 		this.words[0] = (short)width;
 		this.words[1] = (short)height;
@@ -115,22 +115,26 @@ public class N88BasicImage
 
 		if ((index & 0x01) > 0)
 		{
-			words[2 + x / 16 + lineWordNum * 4 * y] |= bit;
+			words[2 + (x / 8 + byteNumPerLine * 4 * y) / 2] |= bit;
 		}
 		if ((index & 0x02) > 0)
 		{
-			words[2 + x / 16 + lineWordNum * (4 * y + 1)] |= bit;
+			words[2 + (x / 8 + byteNumPerLine * (4 * y + 1)) / 2] |= bit;
 		}
 		if ((index & 0x04) > 0)
 		{
-			words[2 + x / 16 + lineWordNum * (4 * y + 2)] |= bit;
+			words[2 + (x / 8 + byteNumPerLine * (4 * y + 2)) / 2] |= bit;
 		}
 		if ((index & 0x08) > 0)
 		{
-			words[2 + x / 16 + lineWordNum * (4 * y + 3)] |= bit;
+			words[2 + (x / 8 + byteNumPerLine * (4 * y + 3)) / 2] |= bit;
 		}
 	}
 
+	/**
+	 * ファイル出力
+	 * @param stream ファイルストリーム
+	 */
 	public void dump(OutputStream stream)
 	{
 		PrintWriter writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(stream)));
