@@ -26,10 +26,11 @@ public class N88BasicImage
 	static public void main(String[] args)
 		throws IOException
 	{
+		int adjust = 1;
 		BufferedImage image = ImageIO.read(new File(args[0]));
-		N88BasicImage basicImage = new N88BasicImage(image.getWidth(), image.getHeight());
-		System.out.printf("%dx%d\n", image.getWidth(), image.getHeight());
-		for (int x=0 ; x<image.getWidth() ; x++)
+		N88BasicImage basicImage = new N88BasicImage(image.getWidth()-adjust, image.getHeight());
+		System.out.printf("%dx%d\n", image.getWidth()-adjust, image.getHeight());
+		for (int x=0 ; x<image.getWidth()-adjust ; x++)
 		{
 			for (int y=0 ; y<image.getHeight() ; y++)
 			{
@@ -40,7 +41,7 @@ public class N88BasicImage
 		}
 
 		basicImage.dump(new FileOutputStream(args[1]));
-		System.out.printf("written %d words.\n", basicImage.words.length);
+		System.out.printf("written %d bytes.\n", basicImage.bytes.length);
 	}
 
 	/**
@@ -82,17 +83,20 @@ public class N88BasicImage
 	int width;
 	int height;
 	int byteNumPerLine;
-	short [] words;
+	byte [] bytes;
 
 	public N88BasicImage(int width, int height)
 	{
 		this.width = width;
 		this.height = height;
 		this.byteNumPerLine = ((width + 7) / 8);
-		this.words = new short [2 + (byteNumPerLine * 4 * height) / 2];
+		System.out.println(this.byteNumPerLine);
+		this.bytes = new byte [((4 + byteNumPerLine * 4 * height + 1) / 2) * 2];
 
-		this.words[0] = (short)width;
-		this.words[1] = (short)height;
+		this.bytes[0] = (byte)(width / 0x100);
+		this.bytes[1] = (byte)(width % 0x100);
+		this.bytes[2] = (byte)(height / 0x100);
+		this.bytes[3] = (byte)(height % 0x100);
 	}
 
 	/**
@@ -103,31 +107,32 @@ public class N88BasicImage
 	 */
 	public void putPixel(int x, int y, int index)
 	{
-		int bit;
-		if (x % 16 < 8)
+		int bit = 1 << (7 - (x % 8));
+		int xoffset;
+		if ((x % 16) < 8)
 		{
-			bit = 1 << (7 - x % 16);
+			xoffset = (x / 8) + 1;
 		}
 		else
 		{
-			bit = 1 << (15 - (x % 16 - 8));
+			xoffset = (x / 8) - 1;
 		}
 
 		if ((index & 0x01) > 0)
 		{
-			words[2 + (x / 8 + byteNumPerLine * 4 * y) / 2] |= bit;
+			bytes[4 + xoffset + byteNumPerLine * 4 * y] |= bit;
 		}
 		if ((index & 0x02) > 0)
 		{
-			words[2 + (x / 8 + byteNumPerLine * (4 * y + 1)) / 2] |= bit;
+			bytes[4 + xoffset + byteNumPerLine * (4 * y + 1)] |= bit;
 		}
 		if ((index & 0x04) > 0)
 		{
-			words[2 + (x / 8 + byteNumPerLine * (4 * y + 2)) / 2] |= bit;
+			bytes[4 + xoffset + byteNumPerLine * (4 * y + 2)] |= bit;
 		}
 		if ((index & 0x08) > 0)
 		{
-			words[2 + (x / 8 + byteNumPerLine * (4 * y + 3)) / 2] |= bit;
+			bytes[4 + xoffset + byteNumPerLine * (4 * y + 3)] |= bit;
 		}
 	}
 
@@ -137,17 +142,21 @@ public class N88BasicImage
 	 */
 	public void dump(OutputStream stream)
 	{
-		PrintWriter writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(stream)));
-		for (int i=0 ; i<words.length ; i++)
+		PrintWriter writer =
+			new PrintWriter(
+				new BufferedWriter(
+					new OutputStreamWriter(stream)));
+
+		for (int i=0 ; i<bytes.length ; i+=2)
 		{
-			writer.printf("%04x", words[i]);
-			if (i < words.length-1)
+			writer.printf("%02x%02x", bytes[i], bytes[i+1]);
+			if (i % 16 == 14)
+			{
+				writer.println(",");
+			}
+			else
 			{
 				writer.print(",");
-			}
-			if (i % 8 == 7)
-			{
-				writer.println();
 			}
 		}
 		writer.close();
