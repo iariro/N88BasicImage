@@ -1,13 +1,16 @@
 package kumagai.n88basicimage;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
@@ -24,6 +27,61 @@ public class N88BasicImage
 	 * @throws IOException
 	 */
 	static public void main(String[] args)
+		throws IOException
+	{
+		if (args[0].equals("encode"))
+		{
+			encode(new String [] { args[1], args[2] });
+		}
+		if (args[0].equals("decode"))
+		{
+			decode(new String [] { args[1], args[2] });
+		}
+	}
+
+	static public void decode(String[] args)
+		throws IOException
+	{
+		BufferedReader reader = new BufferedReader(new FileReader(args[0]));
+		PrintWriter writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(args[1]))));
+
+		int count = 0;
+		ArrayList<String> buffer = new ArrayList<String>();
+		String str;
+		while ((str = reader.readLine()) != null)
+		{
+			String [] words = str.split(",");
+			for (String word : words)
+			{
+				if (count >= 2)
+				{
+					buffer.add(word);
+
+					if (buffer.size() == 4 * 4)
+					{
+						for (int i=0 ; i<64 ; i++)
+						{
+							int j = 15 - (i + 8) % 16;
+
+							int a = (Integer.parseInt(buffer.get(i / 16     ), 16) & (1 << j)) > 0 ? 1 : 0;
+							int b = (Integer.parseInt(buffer.get(i / 16 +  4), 16) & (1 << j)) > 0 ? 2 : 0;
+							int c = (Integer.parseInt(buffer.get(i / 16 +  8), 16) & (1 << j)) > 0 ? 4 : 0;
+							int d = (Integer.parseInt(buffer.get(i / 16 + 12), 16) & (1 << j)) > 0 ? 8 : 0;
+
+							writer.printf("<span style='color:#%06x;'>@</span>", colors[a + b + c + d]);
+						}
+						writer.println("<br>");
+						buffer.clear();
+					}
+				}
+				count++;
+			}
+		}
+		reader.close();
+		writer.close();
+	}
+
+	static public void encode(String[] args)
 		throws IOException
 	{
 		int adjust = 1;
