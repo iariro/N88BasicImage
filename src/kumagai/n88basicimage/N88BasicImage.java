@@ -4,8 +4,8 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -88,15 +88,23 @@ public class N88BasicImage
 		BufferedImage image = ImageIO.read(new File(args[0]));
 		N88BasicImage basicImage = new N88BasicImage(image.getWidth()-adjust, image.getHeight());
 		System.out.printf("%dx%d\n", image.getWidth()-adjust, image.getHeight());
+		ColorStatistics colorStatistics = new ColorStatistics();
 		for (int x=0 ; x<image.getWidth()-adjust ; x++)
 		{
 			for (int y=0 ; y<image.getHeight() ; y++)
 			{
 				int c = image.getRGB(x, y);
+				if (!colorStatistics.containsKey(c))
+				{
+					colorStatistics.put(c, 0);
+				}
+				colorStatistics.put(c, colorStatistics.get(c) + 1);
 				int index = getNearestColorIndex(c);
 				basicImage.putPixel(x, y, index);
 			}
 		}
+		System.out.println("color num=" + colorStatistics.size());
+		//colorStatistics.dump();
 
 		basicImage.dump(new FileOutputStream(args[1]));
 		System.out.printf("written %d bytes.\n", basicImage.bytes.length);
