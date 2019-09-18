@@ -31,7 +31,7 @@ public class N88BasicImage
 	{
 		if (args[0].equals("encode"))
 		{
-			encode(new String [] { args[1], args[2] });
+			encode(new String [] { args[1], args[2], args[3] });
 		}
 		if (args[0].equals("decode"))
 		{
@@ -94,17 +94,13 @@ public class N88BasicImage
 			for (int y=0 ; y<image.getHeight() ; y++)
 			{
 				int c = image.getRGB(x, y);
-				if (!colorStatistics.containsKey(c))
-				{
-					colorStatistics.put(c, 0);
-				}
-				colorStatistics.put(c, colorStatistics.get(c) + 1);
+				colorStatistics.put12bitColor(c);
 				int index = getNearestColorIndex(c);
 				basicImage.putPixel(x, y, index);
 			}
 		}
 		System.out.println("color num=" + colorStatistics.size());
-		//colorStatistics.dump();
+		colorStatistics.dump(new FileOutputStream(args[2]));
 
 		basicImage.dump(new FileOutputStream(args[1]));
 		System.out.printf("written %d bytes.\n", basicImage.bytes.length);

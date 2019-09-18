@@ -1,0 +1,9 @@
+<project default="compile">
+
+	<target name="compile">
+		<javac srcdir="src" destdir="bin" classpath="" includeantruntime="false">
+			<include name="kumagai/n88basicimage/N88BasicImage.java" />
+		</javac>
+	</target>
+
+</project>
