@@ -242,10 +242,11 @@ public class N88BasicImage
 
 		for (int i=0 ; i<16 ; i++)
 		{
+			// GRB
 			writer.printf(
 				"%03x,",
-				((colors[i] & 0xf00000) >> 12) |
-				((colors[i] & 0xf000) >> 8) |
+				((colors[i] & 0xf00000) >> 16) |
+				((colors[i] & 0xf000) >> 4) |
 				((colors[i] & 0xf0) >> 4));
 		}
 
