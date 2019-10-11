@@ -55,7 +55,20 @@ public class N88BasicImage
 			String [] words = str.split(",");
 			for (String word : words)
 			{
-				if (count >= 16 + 2)
+				if (count < 16)
+				{
+					colors[count] = Integer.parseInt(word, 16);
+					colors[count] =
+						((colors[count] & 0xf00) << 12) |
+						((colors[count] & 0xf00) << 8) |
+						((colors[count] & 0x0f0) << 8) |
+						((colors[count] & 0x0f0) << 4) |
+						((colors[count] & 0x00f) << 4) |
+						(colors[count] & 0x00f);
+
+					writer.printf("%d %06x <span style='color:#%06x;'>@</span><br>", count, colors[count], colors[count]);
+				}
+				else if (count >= 16 + 2)
 				{
 					buffer.add(word);
 
@@ -104,10 +117,7 @@ public class N88BasicImage
 		{
 			if (i < sortedList.size())
 			{
-				colors[i] =
-					((sortedList.get(i).getKey() & 0xff0000) >> 12) |
-					((sortedList.get(i).getKey() & 0xff00) >> 8) |
-					((sortedList.get(i).getKey() & 0xff) >> 4);
+				colors[i] = sortedList.get(i).getKey();
 			}
 		}
 		for (int x=0 ; x<image.getWidth()-adjust ; x++)
@@ -234,7 +244,9 @@ public class N88BasicImage
 		{
 			writer.printf(
 				"%03x,",
-				colors[i]);
+				((colors[i] & 0xf00000) >> 12) |
+				((colors[i] & 0xf000) >> 8) |
+				((colors[i] & 0xf0) >> 4));
 		}
 
 		for (int i=0 ; i<bytes.length ; i+=2)
