@@ -11,6 +11,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
 
@@ -53,7 +55,7 @@ public class N88BasicImage
 			String [] words = str.split(",");
 			for (String word : words)
 			{
-				if (count >= 2)
+				if (count >= 16 + 2)
 				{
 					buffer.add(word);
 
@@ -95,12 +97,30 @@ public class N88BasicImage
 			{
 				int c = image.getRGB(x, y);
 				colorStatistics.put12bitColor(c);
+			}
+		}
+		List<Entry<Integer,Integer>> sortedList = colorStatistics.getSortedList();
+		for (int i=0 ; i<16 ; i++)
+		{
+			if (i < sortedList.size())
+			{
+				colors[i] =
+					((sortedList.get(i).getKey() & 0xff0000) >> 12) |
+					((sortedList.get(i).getKey() & 0xff00) >> 8) |
+					((sortedList.get(i).getKey() & 0xff) >> 4);
+			}
+		}
+		for (int x=0 ; x<image.getWidth()-adjust ; x++)
+		{
+			for (int y=0 ; y<image.getHeight() ; y++)
+			{
+				int c = image.getRGB(x, y);
 				int index = getNearestColorIndex(c);
 				basicImage.putPixel(x, y, index);
 			}
 		}
 		System.out.println("color num=" + colorStatistics.size());
-		colorStatistics.dump(new FileOutputStream(args[2]));
+		colorStatistics.dump(sortedList, new FileOutputStream(args[2]));
 
 		basicImage.dump(new FileOutputStream(args[1]));
 		System.out.printf("written %d bytes.\n", basicImage.bytes.length);
@@ -115,6 +135,7 @@ public class N88BasicImage
 	{
 		Integer index = null;
 		Integer min = null;
+
 		for (int i=0 ; i<colors.length ; i++)
 		{
 			int diff = getDiff(color, colors[i]);
@@ -208,6 +229,13 @@ public class N88BasicImage
 			new PrintWriter(
 				new BufferedWriter(
 					new OutputStreamWriter(stream)));
+
+		for (int i=0 ; i<16 ; i++)
+		{
+			writer.printf(
+				"%03x,",
+				colors[i]);
+		}
 
 		for (int i=0 ; i<bytes.length ; i+=2)
 		{

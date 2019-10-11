@@ -18,9 +18,9 @@ public class ColorStatistics
 		int b = (c & 0xff);
 
 		int rgb12 =
-			((r & 0xc0) << 16) +
-			((g & 0xc0) << 8) +
-			(b & 0xc0);
+			(((r & 0xc0) + 0x30) << 16) +
+			(((g & 0xc0) + 0x30) << 8) +
+			((b & 0xc0) + 0x30);
 
 		if (!containsKey(rgb12))
 		{
@@ -29,33 +29,36 @@ public class ColorStatistics
 		put(rgb12, get(rgb12) + 1);
 	}
 
-	public void dump(OutputStream stream)
+	public void dump(List<Map.Entry<Integer, Integer>> mapOrderList, OutputStream stream)
+	{
+		PrintWriter writer =
+			new PrintWriter(
+				new BufferedWriter(
+					new OutputStreamWriter(stream)));
+
+		writer.printf("<table>");
+		writer.printf("<tr><th>index</th><th>color</th><th>num</th><th width='100px'>color</th></tr>\n");
+		for (int i=0; i<mapOrderList.size() ; i++)
+		{
+			writer.printf("<tr><td>%d</td><td>%06x</td><td>%d</td><td style='background-color:#%06x;'></td></tr>\n", i, mapOrderList.get(i).getKey(), mapOrderList.get(i).getValue(), mapOrderList.get(i).getKey());
+		}
+		writer.printf("</table>");
+		writer.close();
+	}
+
+	public List<Map.Entry<Integer, Integer>> getSortedList()
 	{
 		List<Map.Entry<Integer, Integer>> mapOrderList = new ArrayList<>(entrySet());
 		Collections.sort(
 			mapOrderList,
 			new Comparator<Map.Entry<Integer, Integer>>()
 			{
-		        public int compare(Map.Entry<Integer, Integer> object1, Map.Entry<Integer, Integer> object2)
-		        {
-		            return - object1.getValue().compareTo(object2.getValue());
-		        }
-		    });
+				public int compare(Map.Entry<Integer, Integer> object1, Map.Entry<Integer, Integer> object2)
+				{
+					return - object1.getValue().compareTo(object2.getValue());
+				}
+			});
 
-		PrintWriter writer =
-			new PrintWriter(
-				new BufferedWriter(
-					new OutputStreamWriter(stream)));
-
-		int i=0;
-		writer.printf("<table>");
-		writer.printf("<tr><th>index</th><th>color</th><th>num</th><th width='100px'>color</th></tr>\n");
-		for (Map.Entry<Integer, Integer> entry : mapOrderList)
-		{
-			writer.printf("<tr><td>%d</td><td>%06x</td><td>%d</td><td style='background-color:#%06x;'></td></tr>\n", i, entry.getKey(), entry.getValue(), entry.getKey());
-			i++;
-		}
-		writer.printf("</table>");
-		writer.close();
+		return mapOrderList;
 	}
 }
