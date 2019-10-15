@@ -2,7 +2,8 @@
 
 	<target name="compile">
 		<javac srcdir="src" destdir="bin" classpath="" includeantruntime="false">
-			<include name="kumagai/n88basicimage/N88BasicImage.java" />
+			<include name="kumagai/n88basicimage/EncodeImage.java" />
+			<include name="kumagai/n88basicimage/DecodeImage.java" />
 		</javac>
 	</target>
 

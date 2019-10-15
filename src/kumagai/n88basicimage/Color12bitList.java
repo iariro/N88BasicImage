@@ -31,13 +31,12 @@ public class Color12bitList
 	{
 		Integer index = null;
 		Integer min = null;
-		Color12bit grb12 = new Color12bit(Color12bit.fromColor24bit(rgb24));
-	
+
 		for (int i=0 ; i<size() ; i++)
 		{
-			int r = Math.abs(grb12.r - get(i).r);
-			int g = Math.abs(grb12.g - get(i).g);
-			int b = Math.abs(grb12.b - get(i).b);
+			int r = Math.abs(((rgb24 & 0xff0000) >> 16) - (get(i).r << 4));
+			int g = Math.abs(((rgb24 & 0x00ff00) >> 8) - (get(i).g << 4));
+			int b = Math.abs(((rgb24 & 0x0000ff)) - (get(i).b << 4));
 			int diff = r + g + b;
 			if (min == null || min > diff)
 			{
