@@ -48,7 +48,7 @@ public class Color12bit
 
 	/**
 	 * 24bit色値として得る
-	 * @return
+	 * @return 24bit色値
 	 */
 	public int getRgb24bit()
 	{

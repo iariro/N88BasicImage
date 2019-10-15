@@ -7,4 +7,13 @@
 		</javac>
 	</target>
 
+	<target name="javadoc">
+		<javadoc
+			destdir="../javadoc"
+			sourcepath="src"
+			charset="utf-8"
+			encoding="utf-8" >
+		</javadoc>
+	</target>
+
 </project>
