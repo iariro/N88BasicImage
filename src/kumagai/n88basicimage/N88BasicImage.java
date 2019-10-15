@@ -47,26 +47,31 @@ public class N88BasicImage
 		BufferedReader reader = new BufferedReader(new FileReader(args[0]));
 		PrintWriter writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(args[1]))));
 
+		writer.println("<table>");
 		int count = 0;
 		ArrayList<String> buffer = new ArrayList<String>();
-		String str;
-		while ((str = reader.readLine()) != null)
+		String line;
+		while ((line = reader.readLine()) != null)
 		{
-			String [] words = str.split(",");
+			String [] words = line.split(",");
 			for (String word : words)
 			{
 				if (count < 16)
 				{
 					colors[count] = Integer.parseInt(word, 16);
 					colors[count] =
-						((colors[count] & 0xf00) << 12) |
-						((colors[count] & 0xf00) << 8) |
-						((colors[count] & 0x0f0) << 8) |
-						((colors[count] & 0x0f0) << 4) |
+						((colors[count] & 0xf00) << 4) |
+						((colors[count] & 0xf00)) |
+						((colors[count] & 0x0f0) << 16) |
+						((colors[count] & 0x0f0) << 12) |
 						((colors[count] & 0x00f) << 4) |
 						(colors[count] & 0x00f);
 
-					writer.printf("%d %06x <span style='color:#%06x;'>@</span><br>", count, colors[count], colors[count]);
+					writer.printf("<tr><td>%d</td><td>%06x</td><td><span style='color:#%06x;'>@</span></td></tr>", count, colors[count], colors[count]);
+					if (count == 15)
+					{
+						writer.println("</table>");
+					}
 				}
 				else if (count >= 16 + 2)
 				{
@@ -242,20 +247,27 @@ public class N88BasicImage
 
 		for (int i=0 ; i<16 ; i++)
 		{
+			if (i > 0)
+			{
+				writer.print(',');
+			}
+
 			// GRB
 			writer.printf(
-				"%03x,",
+				"%03x",
 				((colors[i] & 0xf00000) >> 16) |
 				((colors[i] & 0xf000) >> 4) |
 				((colors[i] & 0xf0) >> 4));
 		}
+		writer.println();
 
 		for (int i=0 ; i<bytes.length ; i+=2)
 		{
 			writer.printf("%02x%02x", bytes[i], bytes[i+1]);
-			if (i % 16 == 14)
+			if (i % 16 == 14 ||
+				i + 2 >= bytes.length)
 			{
-				writer.println(",");
+				writer.println();
 			}
 			else
 			{

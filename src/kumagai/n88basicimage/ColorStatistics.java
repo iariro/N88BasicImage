@@ -1,6 +1,9 @@
 package kumagai.n88basicimage;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -49,6 +52,8 @@ public class ColorStatistics
 	public List<Map.Entry<Integer, Integer>> getSortedList()
 	{
 		List<Map.Entry<Integer, Integer>> mapOrderList = new ArrayList<>(entrySet());
+
+		// 使用頻度の高い順にソート
 		Collections.sort(
 			mapOrderList,
 			new Comparator<Map.Entry<Integer, Integer>>()
@@ -56,6 +61,31 @@ public class ColorStatistics
 				public int compare(Map.Entry<Integer, Integer> object1, Map.Entry<Integer, Integer> object2)
 				{
 					return - object1.getValue().compareTo(object2.getValue());
+				}
+			});
+
+		// １６色に絞る
+		while (mapOrderList.size() > 16)
+		{
+			mapOrderList.remove(16);
+		}
+
+		// RGB値が低い順にソート
+		Collections.sort(
+			mapOrderList,
+			new Comparator<Map.Entry<Integer, Integer>>()
+			{
+				public int compare(Map.Entry<Integer, Integer> color1, Map.Entry<Integer, Integer> color2)
+				{
+					int rgb1 =
+						((color1.getKey() & 0xff0000) >> 16) +
+						((color1.getKey() & 0xff00) >> 8) +
+						(color1.getKey() & 0xff);
+					int rgb2 =
+						((color2.getKey() & 0xff0000) >> 16) +
+						((color2.getKey() & 0xff00) >> 8) +
+						(color2.getKey() & 0xff);
+					return Integer.compare(rgb1, rgb2);
 				}
 			});
 
