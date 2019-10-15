@@ -1,9 +1,5 @@
 package kumagai.n88basicimage;
 
-import java.io.BufferedWriter;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -11,45 +7,34 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 色情報統計
+ */
 public class ColorStatistics
 	extends HashMap<Integer, Integer>
 {
-	public void put12bitColor(int c)
+	/**
+	 * 24bit色を受け12bit色として１件追加する
+	 * @param rgb24 24bit色
+	 */
+	public void put24bitColorAs12bit(int rgb24)
 	{
-		int r = (c & 0xff0000) >> 16;
-		int g = (c & 0xff00) >> 8;
-		int b = (c & 0xff);
+		int grb12 = Color12bit.fromColor24bit(rgb24);
 
-		int rgb12 =
-			(((r & 0xc0) + 0x30) << 16) +
-			(((g & 0xc0) + 0x30) << 8) +
-			((b & 0xc0) + 0x30);
-
-		if (!containsKey(rgb12))
+		if (!containsKey(grb12))
 		{
-			put(rgb12, 0);
+			// 初出
+
+			put(grb12, 0);
 		}
-		put(rgb12, get(rgb12) + 1);
+		put(grb12, get(grb12) + 1);
 	}
 
-	public void dump(List<Map.Entry<Integer, Integer>> mapOrderList, OutputStream stream)
-	{
-		PrintWriter writer =
-			new PrintWriter(
-				new BufferedWriter(
-					new OutputStreamWriter(stream)));
-
-		writer.printf("<table>");
-		writer.printf("<tr><th>index</th><th>color</th><th>num</th><th width='100px'>color</th></tr>\n");
-		for (int i=0; i<mapOrderList.size() ; i++)
-		{
-			writer.printf("<tr><td>%d</td><td>%06x</td><td>%d</td><td style='background-color:#%06x;'></td></tr>\n", i, mapOrderList.get(i).getKey(), mapOrderList.get(i).getValue(), mapOrderList.get(i).getKey());
-		}
-		writer.printf("</table>");
-		writer.close();
-	}
-
-	public List<Map.Entry<Integer, Integer>> getSortedList()
+	/**
+	 * 使用頻度の高い１６色を得る
+	 * @return 使用頻度の高い１６色
+	 */
+	public Color12bitList getTop16Colors()
 	{
 		List<Map.Entry<Integer, Integer>> mapOrderList = new ArrayList<>(entrySet());
 
@@ -64,31 +49,26 @@ public class ColorStatistics
 				}
 			});
 
-		// １６色に絞る
-		while (mapOrderList.size() > 16)
+		// 上位16件のみでリスト作成
+		Color12bitList colorTop16 = new Color12bitList();
+		for (int i=0 ; i<16 && i<mapOrderList.size() ; i++)
 		{
-			mapOrderList.remove(16);
+			colorTop16.add(new Color12bit(mapOrderList.get(i).getKey()));
 		}
 
 		// RGB値が低い順にソート
 		Collections.sort(
-			mapOrderList,
-			new Comparator<Map.Entry<Integer, Integer>>()
+			colorTop16,
+			new Comparator<Color12bit>()
 			{
-				public int compare(Map.Entry<Integer, Integer> color1, Map.Entry<Integer, Integer> color2)
+				public int compare(Color12bit color1, Color12bit color2)
 				{
-					int rgb1 =
-						((color1.getKey() & 0xff0000) >> 16) +
-						((color1.getKey() & 0xff00) >> 8) +
-						(color1.getKey() & 0xff);
-					int rgb2 =
-						((color2.getKey() & 0xff0000) >> 16) +
-						((color2.getKey() & 0xff00) >> 8) +
-						(color2.getKey() & 0xff);
-					return Integer.compare(rgb1, rgb2);
+					int grb1 = color1.g + color1.r + color1.b;
+					int grb2 = color2.g + color2.r + color2.b;
+					return Integer.compare(grb1, grb2);
 				}
 			});
 
-		return mapOrderList;
+		return colorTop16;
 	}
 }
