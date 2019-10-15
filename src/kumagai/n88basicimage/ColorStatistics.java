@@ -51,9 +51,16 @@ public class ColorStatistics
 
 		// 上位16件のみでリスト作成
 		Color12bitList colorTop16 = new Color12bitList();
-		for (int i=0 ; i<16 && i<mapOrderList.size() ; i++)
+		for (int i=0 ; i<16 ; i++)
 		{
-			colorTop16.add(new Color12bit(mapOrderList.get(i).getKey()));
+			if (i < mapOrderList.size())
+			{
+				colorTop16.add(new Color12bit(mapOrderList.get(i).getKey()));
+			}
+			else
+			{
+				colorTop16.add(new Color12bit(0));
+			}
 		}
 
 		// RGB値が低い順にソート

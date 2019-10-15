@@ -19,14 +19,13 @@ public class EncodeImage
 	static public void main(String[] args)
 		throws IOException
 	{
-		int adjust = 1;
 		BufferedImage image = ImageIO.read(new File(args[0]));
-		N88BasicImage basicImage = new N88BasicImage(image.getWidth()-adjust, image.getHeight());
-		System.out.printf("%dx%d\n", image.getWidth()-adjust, image.getHeight());
+		N88BasicImage basicImage = new N88BasicImage(image.getWidth(), image.getHeight());
+		System.out.printf("%dx%d\n", image.getWidth(), image.getHeight());
 
 		// 使用している色の統計をとる
 		ColorStatistics colorStatistics = new ColorStatistics();
-		for (int x=0 ; x<image.getWidth()-adjust ; x++)
+		for (int x=0 ; x<image.getWidth() ; x++)
 		{
 			for (int y=0 ; y<image.getHeight() ; y++)
 			{
@@ -39,7 +38,7 @@ public class EncodeImage
 		basicImage.colors = top16colors;
 
 		// 近い色のパレットを求めドットを打っていく
-		for (int x=0 ; x<image.getWidth()-adjust ; x++)
+		for (int x=0 ; x<image.getWidth() ; x++)
 		{
 			for (int y=0 ; y<image.getHeight() ; y++)
 			{

@@ -48,7 +48,11 @@ public class N88BasicImage
 		int xoffset;
 		if ((x % 16) < 8)
 		{
-			xoffset = (x / 8) + 1;
+			xoffset = (x / 8);
+			if (xoffset + 1 < byteNumPerLine)
+			{
+				xoffset++;
+			}
 		}
 		else
 		{
@@ -130,19 +134,26 @@ public class N88BasicImage
 		}
 		writer.println("</table>");
 
-		for (int i=0 ; i<bytes.length ; i+=32)
+		for (int i=0 ; i<bytes.length ; i+=byteNumPerLine * 4)
 		{
-			if (i + 32 <= bytes.length)
+			if (i + width <= bytes.length)
 			for (int j=0 ; j<width ; j++)
 			{
 				int k = 7 - j % 8;
 
-				int a = (bytes[4 + i + j / 8 + (j % 16 < 8 ? 1 : -1)] & (1 << k)) > 0 ? 1 : 0;
-				int b = (bytes[4 + i + j / 8 + (j % 16 < 8 ? 1 : -1) + 8] & (1 << k)) > 0 ? 2 : 0;
-				int c = (bytes[4 + i + j / 8 + (j % 16 < 8 ? 1 : -1) + 16] & (1 << k)) > 0 ? 4 : 0;
-				int d = (bytes[4 + i + j / 8 + (j % 16 < 8 ? 1 : -1) + 24] & (1 << k)) > 0 ? 8 : 0;
+				int offset = 4 + i + j / 8;
+				if ((j / 8) + 1 < byteNumPerLine ||
+					(j / 8) % 2 == 1)
+				{
+					offset += (j % 16 < 8 ? 1 : -1);
+				}
 
-				writer.printf("<span style='color:#%06x;'>@</span>", colors.get(a + b + c + d).getRgb24bit());
+				int a = (bytes[offset + (byteNumPerLine * 0)] & (1 << k)) > 0 ? 1 : 0;
+				int b = (bytes[offset + (byteNumPerLine * 1)] & (1 << k)) > 0 ? 2 : 0;
+				int c = (bytes[offset + (byteNumPerLine * 2)] & (1 << k)) > 0 ? 4 : 0;
+				int d = (bytes[offset + (byteNumPerLine * 3)] & (1 << k)) > 0 ? 8 : 0;
+
+				writer.printf("<span style='color:#%06x;'>#</span>", colors.get(a + b + c + d).getRgb24bit());
 			}
 			writer.println("<br>");
 		}
