@@ -106,7 +106,7 @@ public class ColorStatistics
 				}
 			}
 
-			if (colorTop16.getCoveredRadio() >= 97)
+			if (colorTop16.getCoveredRadio() >= coverageThresh)
 			{
 				colorTop16.reducedColor = reducedColor;
 				break;
