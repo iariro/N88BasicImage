@@ -1,11 +1,18 @@
 package kumagai.n88basicimage;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+
+import javax.imageio.ImageIO;
 
 /**
  * N88-BASICのPUT/GET形式の画像データ
@@ -158,5 +165,56 @@ public class N88BasicImage
 			writer.println("<br>");
 		}
 		writer.close();
+	}
+
+	/**
+	 * 確認用に画像をPNG形式で出力
+	 * @param filename ファイル名
+	 * @param scale 拡大率
+	 */
+	public void writePng(String filename, int scale)
+		throws IOException
+	{
+		BufferedImage image = new BufferedImage(width * scale, height * scale, BufferedImage.TYPE_INT_BGR);
+		Graphics2D graphics = image.createGraphics();
+
+		Color [] colors2 = new Color [colors.size()];
+		for (int i=0 ; i<colors.size() ; i++)
+		{
+			colors2[i] =
+				new Color(
+					(colors.get(i).r << 4) + colors.get(i).r,
+					(colors.get(i).g << 4) + colors.get(i).g,
+					(colors.get(i).b << 4) + colors.get(i).b);
+		}
+
+		int y = 0;
+		for (int i=0 ; i<bytes.length ; i+=byteNumPerLine * 4)
+		{
+			for (int j=0 ; j<width ; j++)
+			{
+				int k = 7 - j % 8;
+
+				int offset = 4 + i + j / 8;
+				if ((j / 8) + 1 < byteNumPerLine ||
+					(j / 8) % 2 == 1)
+				{
+					offset += (j % 16 < 8 ? 1 : -1);
+				}
+
+				if (offset + (byteNumPerLine * 3) <= bytes.length)
+				{
+					int a = (bytes[offset + (byteNumPerLine * 0)] & (1 << k)) > 0 ? 1 : 0;
+					int b = (bytes[offset + (byteNumPerLine * 1)] & (1 << k)) > 0 ? 2 : 0;
+					int c = (bytes[offset + (byteNumPerLine * 2)] & (1 << k)) > 0 ? 4 : 0;
+					int d = (bytes[offset + (byteNumPerLine * 3)] & (1 << k)) > 0 ? 8 : 0;
+
+					graphics.setPaint(colors2[a + b + c + d]);
+					graphics.fillRect(j * scale, y * scale, scale, scale);
+				}
+			}
+			y++;
+		}
+		ImageIO.write(image, "png", new File(filename));
 	}
 }

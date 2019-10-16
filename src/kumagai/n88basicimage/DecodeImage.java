@@ -62,6 +62,7 @@ public class DecodeImage
 			image.bytes[i] = bytes.get(i);
 		}
 
-		image.dumpHtml(args[1]);
+		image.writePng(args[1], 1);
+		System.out.printf("written %s.\n", args[1]);
 	}
 }
