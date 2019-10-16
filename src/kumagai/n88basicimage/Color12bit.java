@@ -12,16 +12,11 @@ public class Color12bit
 	 */
 	static public int fromColor24bit(int rgb24)
 	{
-		int r = (rgb24 & 0xc00000) >> 20;
-		int g = (rgb24 & 0xc000) >> 12;
-		int b = (rgb24 & 0xc0) >> 4;
+		int r = (rgb24 & 0xf00000) >> 20;
+		int g = (rgb24 & 0xf000) >> 12;
+		int b = (rgb24 & 0xf0) >> 4;
 
-		int grb12 =
-			((g + 0x03) << 8) +
-			((r + 0x03) << 4) +
-			(b + 0x03);
-
-		return grb12;
+		return (g << 8) + (r << 4) + b;
 	}
 
 	public int r, g, b;

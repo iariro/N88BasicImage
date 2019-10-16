@@ -14,7 +14,7 @@ public class EncodeImage
 {
 	/**
 	 * エントリポイント
-	 * @param args [0]=入力ファイルパス [1]=画像ファイルパス [2]=パレットリストファイルパス
+	 * @param args [0]=入力ファイルパス [1]=画像ファイルパス [2]=パレットリストファイルパス [3]=色網羅率(%)
 	 */
 	static public void main(String[] args)
 		throws IOException
@@ -34,7 +34,14 @@ public class EncodeImage
 		}
 
 		// 16色に絞る
-		Color12bitList top16colors = colorStatistics.getTop16Colors();
+		Color12bitList top16colors = colorStatistics.getTop16Colors(Integer.valueOf(args[3]));
+		System.out.printf(
+			"color=%d->%d pixel coverage : %d / %d = %2.2f%% \n",
+			top16colors.totalColor,
+			top16colors.reducedColor,
+			top16colors.coveredPixel,
+			top16colors.totalPixel,
+			top16colors.getCoveredRadio());
 		basicImage.colors = top16colors;
 
 		// 近い色のパレットを求めドットを打っていく
@@ -42,8 +49,7 @@ public class EncodeImage
 		{
 			for (int y=0 ; y<image.getHeight() ; y++)
 			{
-				int index = top16colors.getNearestColorIndex(image.getRGB(x, y));
-				basicImage.putPixel(x, y, index);
+				basicImage.putPixel(x, y, top16colors.getNearestColorIndex(image.getRGB(x, y)));
 			}
 		}
 

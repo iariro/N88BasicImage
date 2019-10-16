@@ -32,15 +32,16 @@ public class ColorStatistics
 
 	/**
 	 * 使用頻度の高い１６色を得る
+	 * @param coverageThresh 色網羅率下限(%)
 	 * @return 使用頻度の高い１６色
 	 */
-	public Color12bitList getTop16Colors()
+	public Color12bitList getTop16Colors(int coverageThresh)
 	{
-		List<Map.Entry<Integer, Integer>> mapOrderList = new ArrayList<>(entrySet());
+		List<Map.Entry<Integer, Integer>> colors = new ArrayList<>(entrySet());
 
 		// 使用頻度の高い順にソート
 		Collections.sort(
-			mapOrderList,
+			colors,
 			new Comparator<Map.Entry<Integer, Integer>>()
 			{
 				public int compare(Map.Entry<Integer, Integer> object1, Map.Entry<Integer, Integer> object2)
@@ -49,19 +50,79 @@ public class ColorStatistics
 				}
 			});
 
-		// 上位16件のみでリスト作成
-		Color12bitList colorTop16 = new Color12bitList();
-		for (int i=0 ; i<16 ; i++)
+		// 全色ごとの差分を調べる
+		ArrayList<IndexPair> diffs = new ArrayList<>();
+		for (int i=0 ; i<colors.size()/4 ; i++)
 		{
-			if (i < mapOrderList.size())
+			for (int j=i+1 ; j<colors.size() ; j++)
 			{
-				colorTop16.add(new Color12bit(mapOrderList.get(i).getKey()));
-			}
-			else
-			{
-				colorTop16.add(new Color12bit(0));
+				int diff =
+					Math.abs(((colors.get(i).getKey() & 0xf00) >> 8) - ((colors.get(j).getKey() & 0xf00) >> 8)) +
+					Math.abs(((colors.get(i).getKey() & 0x0f0) >> 4) - ((colors.get(j).getKey() & 0x0f0) >> 4)) +
+					Math.abs(((colors.get(i).getKey() & 0x00f)) - ((colors.get(j).getKey() & 0x00f)));
+
+				diffs.add(new IndexPair(i, j, diff));
 			}
 		}
+		// 差分が小さい＝色が近い順にソート
+		Collections.sort(
+				diffs,
+			new Comparator<IndexPair>()
+			{
+				public int compare(IndexPair color1, IndexPair color2)
+				{
+					return Integer.compare(color1.diff, color2.diff);
+				}
+			});
+
+		int reducedColor = colors.size();
+		Color12bitList colorTop16;
+		do
+		{
+			// 上位16件のみでリスト作成
+			colorTop16 = new Color12bitList();
+			colorTop16.totalColor = colors.size();
+			for (int i=0 ; i<colors.size() ; i++)
+			{
+				if (colors.get(i) == null)
+				{
+					continue;
+				}
+
+				colorTop16.totalPixel += colors.get(i).getValue();
+
+				if (colorTop16.size() < 16)
+				{
+					colorTop16.coveredPixel += colors.get(i).getValue();
+
+					if (i < colors.size())
+					{
+						colorTop16.add(new Color12bit(colors.get(i).getKey()));
+					}
+					else
+					{
+						colorTop16.add(new Color12bit(0));
+					}
+				}
+			}
+
+			if (colorTop16.getCoveredRadio() >= 97)
+			{
+				colorTop16.reducedColor = reducedColor;
+				break;
+			}
+
+			int index1 = diffs.get(0).index1;
+			int index2 = diffs.get(0).index2;
+			if (colors.get(index1) != null && colors.get(index2) != null)
+			{
+				colors.get(index1).setValue((Integer)(colors.get(index1).getValue() + colors.get(index2).getValue()));
+				colors.set(index2, null);
+				reducedColor--;
+			}
+			diffs.remove(0);
+		}
+		while (true);
 
 		// RGB値が低い順にソート
 		Collections.sort(

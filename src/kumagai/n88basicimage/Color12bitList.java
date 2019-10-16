@@ -12,6 +12,20 @@ import java.util.ArrayList;
 public class Color12bitList
 	extends ArrayList<Color12bit>
 {
+	public int totalColor;
+	public int reducedColor;
+	public int totalPixel;
+	public int coveredPixel;
+
+	/**
+	 * １６色で表現されるドット数の網羅率を得る
+	 * @return 網羅率(%)
+	 */
+	public float getCoveredRadio()
+	{
+		return ((float)coveredPixel * 100 / (float)totalPixel);
+	}
+
 	/*
 	 * 
 		static final int [] colors =
