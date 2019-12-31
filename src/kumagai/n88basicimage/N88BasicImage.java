@@ -85,10 +85,44 @@ public class N88BasicImage
 	}
 
 	/**
+	 * パレットファイル出力
+	 * @param stream ファイルストリーム
+	 */
+	public void dumpPaletteAsText(OutputStream stream)
+	{
+		PrintWriter writer =
+			new PrintWriter(
+				new BufferedWriter(
+					new OutputStreamWriter(stream)));
+
+		for (int i=0 ; i<16 ; i++)
+		{
+			if (i > 0)
+			{
+				writer.print(',');
+			}
+
+			writer.printf("%03x", colors.get(i).getGrb12bit());
+		}
+		writer.println();
+		writer.close();
+	}
+
+	/**
 	 * 画像ファイル出力
 	 * @param stream ファイルストリーム
 	 */
-	public void dump(OutputStream stream)
+	public void dumpImageAsBinary(OutputStream stream)
+		throws IOException
+	{
+		stream.write(bytes, 0, bytes.length);
+	}
+
+	/**
+	 * 画像ファイル出力
+	 * @param stream ファイルストリーム
+	 */
+	public void dumpAsText(OutputStream stream)
 	{
 		PrintWriter writer =
 			new PrintWriter(

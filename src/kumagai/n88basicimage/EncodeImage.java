@@ -14,11 +14,30 @@ public class EncodeImage
 {
 	/**
 	 * エントリポイント
-	 * @param args [0]=入力ファイルパス [1]=画像ファイルパス [2]=パレットリストファイルパス [3]=色網羅率(%)
+	 * @param args [0]=元画像ファイルパス [1]=N88-BASIC用画像ファイルパス [2]=パレットリストファイルパス [3]=色網羅率(%) [4]=/out-type=text|bin
 	 */
 	static public void main(String[] args)
 		throws IOException
 	{
+		if (args.length < 4)
+		{
+			return;
+		}
+
+		String outType = "text";
+		if (args.length >= 5)
+		{
+			if (args[4].startsWith("/out-type="))
+			{
+				outType = args[4].substring(10);
+			}
+		}
+
+		if (!(outType.equals("text") || outType.equals("bin")))
+		{
+			return;
+		}
+
 		BufferedImage image = ImageIO.read(new File(args[0]));
 		N88BasicImage basicImage = new N88BasicImage(image.getWidth(), image.getHeight());
 		System.out.printf("%dx%d\n", image.getWidth(), image.getHeight());
@@ -54,7 +73,17 @@ public class EncodeImage
 		}
 
 		// 画像ファイル出力
-		basicImage.dump(new FileOutputStream(args[1]));
+		if (outType.equals("text"))
+		{
+			basicImage.dumpAsText(new FileOutputStream(args[1]));
+		}
+		else if (outType.equals("bin"))
+		{
+			FileOutputStream stream = new FileOutputStream(args[1] + ".plt");
+			basicImage.dumpPaletteAsText(stream);
+			basicImage.dumpImageAsBinary(new FileOutputStream(args[1] + ".img"));
+		}
+
 		// パレット一覧出力
 		top16colors.dump(new FileOutputStream(args[2]));
 
