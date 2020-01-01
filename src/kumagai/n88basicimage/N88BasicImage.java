@@ -35,12 +35,12 @@ public class N88BasicImage
 		this.width = width;
 		this.height = height;
 		this.byteNumPerLine = ((width + 7) / 8);
-		this.bytes = new byte [((4 + byteNumPerLine * 4 * height + 1) / 2) * 2];
+		this.bytes = new byte [4 + ((byteNumPerLine * 4 * height + 1) / 2) * 2];
 
-		this.bytes[0] = (byte)(width / 0x100);
-		this.bytes[1] = (byte)(width % 0x100);
-		this.bytes[2] = (byte)(height / 0x100);
-		this.bytes[3] = (byte)(height % 0x100);
+		this.bytes[0] = (byte)(width % 0x100);
+		this.bytes[1] = (byte)(width / 0x100);
+		this.bytes[2] = (byte)(height % 0x100);
+		this.bytes[3] = (byte)(height / 0x100);
 	}
 
 	/**
@@ -53,18 +53,7 @@ public class N88BasicImage
 	{
 		int bit = 1 << (7 - (x % 8));
 		int xoffset;
-		if ((x % 16) < 8)
-		{
-			xoffset = (x / 8);
-			if (xoffset + 1 < byteNumPerLine)
-			{
-				xoffset++;
-			}
-		}
-		else
-		{
-			xoffset = (x / 8) - 1;
-		}
+		xoffset = (x / 8);
 
 		if ((index & 0x01) > 0)
 		{
@@ -142,7 +131,7 @@ public class N88BasicImage
 
 		for (int i=0 ; i<bytes.length ; i+=2)
 		{
-			writer.printf("%02x%02x", bytes[i], bytes[i+1]);
+			writer.printf("%02x%02x", bytes[i+1], bytes[i]);
 			if (i % 16 == 14 ||
 				i + 2 >= bytes.length)
 			{
