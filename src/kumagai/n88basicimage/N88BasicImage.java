@@ -104,6 +104,10 @@ public class N88BasicImage
 	public void dumpImageAsBinary(OutputStream stream)
 		throws IOException
 	{
+		stream.write(0x00);
+		stream.write(0x00);
+		stream.write(0x00);
+		stream.write(0x00);
 		stream.write(bytes, 0, bytes.length);
 	}
 
